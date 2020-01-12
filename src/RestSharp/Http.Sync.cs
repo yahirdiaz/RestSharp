@@ -88,7 +88,7 @@ namespace RestSharp
                 method, r =>
                 {
                     if (!HasBody) return;
-                    
+
                     if (!CanGetWithBody())
                         throw new NotSupportedException($"Http verb {method} does not support body");
 
@@ -177,7 +177,7 @@ namespace RestSharp
             else if (RequestBodyBytes != null)
                 requestStream.Write(RequestBodyBytes, 0, RequestBodyBytes.Length);
             else if (RequestBody != null)
-                requestStream.WriteString(RequestBody, Encoding);
+                requestStream.WriteString(RequestBody, HttpOptions.Encoding);
         }
 
         [Obsolete("Use the WebRequestConfigurator delegate instead of overriding this method")]
@@ -185,11 +185,11 @@ namespace RestSharp
         {
             var webRequest = CreateWebRequest(url) ?? CreateRequest(url);
 
-            webRequest.UseDefaultCredentials = UseDefaultCredentials;
+            webRequest.UseDefaultCredentials = HttpOptions.UseDefaultCredentials;
 
-            webRequest.PreAuthenticate                      = PreAuthenticate;
-            webRequest.Pipelined                            = Pipelined;
-            webRequest.UnsafeAuthenticatedConnectionSharing = UnsafeAuthenticatedConnectionSharing;
+            webRequest.PreAuthenticate                      = HttpOptions.PreAuthenticate;
+            webRequest.Pipelined                            = HttpOptions.Pipelined;
+            webRequest.UnsafeAuthenticatedConnectionSharing = HttpOptions.UnsafeAuthenticatedConnectionSharing;
 #if NETSTANDARD2_0
             webRequest.Proxy = null;
 #endif
@@ -216,37 +216,38 @@ namespace RestSharp
             if (Credentials != null)
                 webRequest.Credentials = Credentials;
 
-            if (UserAgent.HasValue())
-                webRequest.UserAgent = UserAgent;
+            if (HttpOptions.UserAgent.HasValue())
+                webRequest.UserAgent = HttpOptions.UserAgent;
 
-            if (ClientCertificates != null)
-                webRequest.ClientCertificates.AddRange(ClientCertificates);
+            if (HttpOptions.ClientCertificates != null)
+                webRequest.ClientCertificates.AddRange(HttpOptions.ClientCertificates);
 
             AllowedDecompressionMethods.ForEach(x => webRequest.AutomaticDecompression |= x);
 
-            if (AutomaticDecompression)
+            if (HttpOptions.AutomaticDecompression)
                 webRequest.AutomaticDecompression =
                     DecompressionMethods.Deflate | DecompressionMethods.GZip | DecompressionMethods.None;
 
-            if (Timeout != 0)
-                webRequest.Timeout = Timeout;
+            if (HttpOptions.Timeout != 0)
+                webRequest.Timeout = HttpOptions.Timeout;
 
-            if (ReadWriteTimeout != 0)
-                webRequest.ReadWriteTimeout = ReadWriteTimeout;
+            if (HttpOptions.ReadWriteTimeout != 0)
+                webRequest.ReadWriteTimeout = HttpOptions.ReadWriteTimeout;
 
-            webRequest.Proxy = Proxy;
+            webRequest.Proxy = HttpOptions.Proxy;
 
-            if (CachePolicy != null)
-                webRequest.CachePolicy = CachePolicy;
+            if (HttpOptions.CachePolicy != null)
+                webRequest.CachePolicy = HttpOptions.CachePolicy;
 
-            webRequest.AllowAutoRedirect = FollowRedirects;
+            webRequest.AllowAutoRedirect = HttpOptions.FollowRedirects;
 
-            if (FollowRedirects && MaxRedirects.HasValue)
-                webRequest.MaximumAutomaticRedirections = MaxRedirects.Value;
+            if (HttpOptions.FollowRedirects && HttpOptions.MaxRedirects.HasValue)
+                webRequest.MaximumAutomaticRedirections = HttpOptions.MaxRedirects.Value;
 
-            webRequest.ServerCertificateValidationCallback = RemoteCertificateValidationCallback;
-
-            webRequest.ConnectionGroupName = ConnectionGroupName;
+            webRequest.ServerCertificateValidationCallback = HttpOptions.RemoteCertificateValidationCallback;
+            webRequest.ConnectionGroupName                 = HttpOptions.ConnectionGroupName;
+            webRequest.KeepAlive                           = HttpOptions.KeepAlive;
+            webRequest.ProtocolVersion                     = HttpOptions.ProtocolVersion;
 
             WebRequestConfigurator?.Invoke(webRequest);
 
@@ -265,7 +266,7 @@ namespace RestSharp
 
             void AppendCookies()
             {
-                webRequest.CookieContainer = CookieContainer ?? new CookieContainer();
+                webRequest.CookieContainer = HttpOptions.CookieContainer ?? new CookieContainer();
 
                 foreach (var httpCookie in Cookies)
                 {

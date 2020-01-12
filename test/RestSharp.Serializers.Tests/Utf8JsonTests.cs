@@ -56,7 +56,7 @@ namespace RestSharp.Serializers.Tests
 
             var client = new RestClient(server.Url).UseUtf8Json();
 
-            var actual = client.Get<TestClass>(new RestRequest()).Data;
+            var actual = client.Get<TestClass>(new RestRequest());
 
             actual.Should().BeEquivalentTo(expected);
         }

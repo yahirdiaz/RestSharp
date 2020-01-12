@@ -30,6 +30,7 @@ using RestSharp.Authenticators;
 using RestSharp.Authenticators.OAuth.Extensions;
 using RestSharp.Deserializers;
 using RestSharp.Extensions;
+using RestSharp.Options;
 using RestSharp.Serialization;
 using RestSharp.Serialization.Json;
 using RestSharp.Serialization.Xml;
@@ -52,23 +53,22 @@ namespace RestSharp
         static readonly ParameterType[] MultiParameterTypes =
             {ParameterType.QueryString, ParameterType.GetOrPost};
 
+        public RestClientOptions ClientOptions { get; }
+
         /// <summary>
         ///     Default constructor that registers default content handlers
         /// </summary>
         public RestClient()
         {
-            Encoding               = Encoding.UTF8;
-            ContentHandlers        = new Dictionary<string, Func<IDeserializer>>();
-            Serializers            = new Dictionary<DataFormat, IRestSerializer>();
-            AcceptTypes            = new List<string>();
-            DefaultParameters      = new List<Parameter>();
-            AutomaticDecompression = true;
+            ContentHandlers   = new Dictionary<string, Func<IDeserializer>>();
+            Serializers       = new Dictionary<DataFormat, IRestSerializer>();
+            AcceptTypes       = new List<string>();
+            DefaultParameters = new List<Parameter>();
+            ClientOptions     = RestClientOptions.Default;
 
             // register default serializers
             UseSerializer<JsonSerializer>();
             UseSerializer<XmlRestSerializer>();
-
-            FollowRedirects = true;
         }
 
         /// <inheritdoc />
@@ -91,12 +91,12 @@ namespace RestSharp
             BaseUrl = new Uri(baseUrl);
         }
 
-        IDictionary<string, Func<IDeserializer>> ContentHandlers { get; }
-        internal IDictionary<DataFormat, IRestSerializer> Serializers { get; }
-        Func<string, string> Encode { get; set; } = s => s.UrlEncode();
-        Func<string, Encoding, string> EncodeQuery { get; set; } = (s, encoding) => s.UrlEncode(encoding);
-        IList<string> AcceptTypes { get; }
-        Action<HttpWebRequest> WebRequestConfigurator { get; set; }
+        IDictionary<string, Func<IDeserializer>>          ContentHandlers        { get; }
+        internal IDictionary<DataFormat, IRestSerializer> Serializers            { get; }
+        Func<string, string>                              Encode                 { get; set; } = s => s.UrlEncode();
+        Func<string, Encoding, string>                    EncodeQuery            { get; set; } = (s, encoding) => s.UrlEncode(encoding);
+        IList<string>                                     AcceptTypes            { get; }
+        Action<HttpWebRequest>                            WebRequestConfigurator { get; set; }
 
         /// <summary>
         ///     Replace the default serializer with a custom one
@@ -119,62 +119,68 @@ namespace RestSharp
         /// <summary>
         ///     Enable or disable automatic gzip/deflate decompression
         /// </summary>
-        public bool AutomaticDecompression { get; set; }
+        // [Obsolete("Use RestClientOptions")]
+        // public bool AutomaticDecompression { get => ClientOptions.AutomaticDecompression; set => ClientOptions.AutomaticDecompression = value; }
 
         /// <summary>
         ///     Maximum number of redirects to follow if FollowRedirects is true
         /// </summary>
-        public int? MaxRedirects { get; set; }
+        // [Obsolete("Use RestClientOptions")]
+        // public int? MaxRedirects { get => ClientOptions.MaxRedirects; set => ClientOptions.MaxRedirects = value; }
 
         /// <summary>
         ///     X509CertificateCollection to be sent with request
         /// </summary>
-        public X509CertificateCollection ClientCertificates { get; set; }
+        // [Obsolete("Use RestClientOptions")]
+        // public X509CertificateCollection ClientCertificates { get; set; }
 
         /// <summary>
         ///     Proxy to use for requests made by this client instance.
         ///     Passed on to underlying WebRequest if set.
         /// </summary>
-        public IWebProxy Proxy { get; set; }
+        // [Obsolete("Use RestClientOptions")]
+        // public IWebProxy Proxy { get; set; }
 
         /// <summary>
         ///     The cache policy to use for requests initiated by this client instance.
         /// </summary>
-        public RequestCachePolicy CachePolicy { get; set; }
+        // [Obsolete("Use RestClientOptions")]
+        // public RequestCachePolicy CachePolicy { get; set; }
 
-        public bool Pipelined { get; set; }
+        // [Obsolete("Use RestClientOptions")]
+        // public bool Pipelined { get; set; }
 
         /// <summary>
         ///     Default is true. Determine whether or not requests that result in
         ///     HTTP status codes of 3xx should follow returned redirect
         /// </summary>
-        public bool FollowRedirects { get; set; }
+        // public bool FollowRedirects { get; set; }
 
         /// <summary>
         ///     The CookieContainer used for requests made by this client instance
         /// </summary>
-        public CookieContainer CookieContainer { get; set; }
+        // public CookieContainer CookieContainer { get; set; }
 
         /// <summary>
         ///     UserAgent to use for requests made by this client instance
         /// </summary>
-        public string UserAgent { get; set; }
+        // public string UserAgent { get; set; }
 
         /// <summary>
         ///     Timeout in milliseconds to use for requests made by this client instance.
         ///     If not set, the default timeout for HttpWebRequest is used.
         /// </summary>
-        public int Timeout { get; set; }
+        // public int Timeout { get; set; }
 
         /// <summary>
         ///     The number of milliseconds before the writing or reading times out.
         /// </summary>
-        public int ReadWriteTimeout { get; set; }
+        // public int ReadWriteTimeout { get; set; }
 
         /// <summary>
         ///     Whether to invoke async callbacks using the SynchronizationContext.Current captured when invoked
         /// </summary>
-        public bool UseSynchronizationContext { get; set; }
+        // public bool UseSynchronizationContext { get; set; }
 
         /// <summary>
         ///     Authenticator to use for requests made by this client instance
@@ -190,9 +196,9 @@ namespace RestSharp
         /// </example>
         public virtual Uri BaseUrl { get; set; }
 
-        public Encoding Encoding { get; set; }
+        // public Encoding Encoding { get; set; }
 
-        public bool PreAuthenticate { get; set; }
+        // public bool PreAuthenticate { get; set; }
 
         /// <summary>
         ///     Set to true if you want to get an exception when deserialization fails.
@@ -215,18 +221,18 @@ namespace RestSharp
         /// <summary>
         ///     Allow high-speed NTLM-authenticated connection sharing
         /// </summary>
-        public bool UnsafeAuthenticatedConnectionSharing { get; set; }
+        // public bool UnsafeAuthenticatedConnectionSharing { get; set; }
 
         /// <summary>
         ///     The ConnectionGroupName property enables you to associate a request with a connection group.
         /// </summary>
-        public string ConnectionGroupName { get; set; }
+        // public string ConnectionGroupName { get; set; }
 
         /// <summary>
         ///     Callback function for handling the validation of remote certificates. Useful for certificate pinning and
         ///     overriding certificate errors in the scope of a request.
         /// </summary>
-        public RemoteCertificateValidationCallback RemoteCertificateValidationCallback { get; set; }
+        // public RemoteCertificateValidationCallback RemoteCertificateValidationCallback { get; set; }
 
         /// <summary>
         ///     Parameters included with every request made with this instance of RestClient
@@ -238,13 +244,13 @@ namespace RestSharp
         ///     Explicit Host header value to use in requests independent from the request URI.
         ///     If null, default host value extracted from URI is used.
         /// </summary>
-        public string BaseHost { get; set; }
+        // public string BaseHost { get; set; }
 
         /// <summary>
         ///     Set to true if you need to add multiple default parameters with the same name.
         ///     Only query and form parameters are supported.
         /// </summary>
-        public bool AllowMultipleDefaultParametersWithSameName { get; set; } = false;
+        // public bool AllowMultipleDefaultParametersWithSameName { get; set; } = false;
 
         /// <summary>
         ///     Registers a content handler to process response content
@@ -263,7 +269,7 @@ namespace RestSharp
             // add Accept header based on registered deserializers
             var accepts = AcceptTypes.JoinToString(", ");
 
-            this.AddOrUpdateDefaultParameter(new Parameter("Accept", accepts, ParameterType.HttpHeader));
+            this.AddOrUpdateDefaultParameter(new Parameter(HttpHeaderNames.Accept, accepts, ParameterType.HttpHeader));
         }
 
         /// <summary>
@@ -282,7 +288,7 @@ namespace RestSharp
         {
             ContentHandlers.Remove(contentType);
             AcceptTypes.Remove(contentType);
-            this.RemoveDefaultParameter("Accept");
+            this.RemoveDefaultParameter(HttpHeaderNames.Accept);
         }
 
         /// <summary>
@@ -292,7 +298,7 @@ namespace RestSharp
         {
             ContentHandlers.Clear();
             AcceptTypes.Clear();
-            this.RemoveDefaultParameter("Accept");
+            this.RemoveDefaultParameter(HttpHeaderNames.Accept);
         }
 
         public IRestResponse<T> Deserialize<T>(IRestResponse response) => Deserialize<T>(response.Request, response);
@@ -442,7 +448,7 @@ namespace RestSharp
 
             var separator = mergedUri != null && mergedUri.Contains("?") ? "&" : "?";
 
-            return Concat(mergedUri, separator, EncodeParameters(parameters, Encoding));
+            return Concat(mergedUri, separator, EncodeParameters(parameters, ClientOptions.HttpOptions.Encoding));
         }
 
         IEnumerable<Parameter> GetDefaultQueryStringParameters(IRestRequest request)
@@ -524,13 +530,13 @@ namespace RestSharp
         {
             var http = new Http
             {
-                Encoding                = Encoding,
+                Encoding                = ClientOptions.Encoding,
                 AlwaysMultipartFormData = request.AlwaysMultipartFormData,
                 UseDefaultCredentials   = request.UseDefaultCredentials,
                 ResponseWriter          = request.ResponseWriter,
                 AdvancedResponseWriter  = request.AdvancedResponseWriter,
                 CookieContainer         = CookieContainer,
-                AutomaticDecompression  = AutomaticDecompression,
+                AutomaticDecompression  = ClientOptions.AutomaticDecompression,
                 WebRequestConfigurator  = WebRequestConfigurator,
                 Encode                  = Encode
             };
@@ -549,7 +555,7 @@ namespace RestSharp
                             && p.Type == defaultParameter.Type
                     );
 
-                if (AllowMultipleDefaultParametersWithSameName)
+                if (ClientOptions.AllowMultipleDefaultParametersWithSameName)
                 {
                     var isMultiParameter = MultiParameterTypes.Any(pt => pt == defaultParameter.Type);
                     parameterExists = !isMultiParameter && parameterExists;
@@ -560,20 +566,20 @@ namespace RestSharp
 
             // Add Accept header based on registered deserializers if none has been set by the caller.
             if (requestParameters.All(
-                p => !p.Name.EqualsIgnoreCase("accept")
+                p => !p.Name.EqualsIgnoreCase(HttpHeaderNames.Accept)
             ))
             {
                 var accepts = Join(", ", AcceptTypes);
 
-                requestParameters.Add(new Parameter("Accept", accepts, ParameterType.HttpHeader));
+                requestParameters.Add(new Parameter(HttpHeaderNames.Accept, accepts, ParameterType.HttpHeader));
             }
 
             http.Url                                  = BuildUri(request);
-            http.Host                                 = BaseHost;
-            http.PreAuthenticate                      = PreAuthenticate;
-            http.UnsafeAuthenticatedConnectionSharing = UnsafeAuthenticatedConnectionSharing;
+            http.Host                                 = ClientOptions.BaseHost;
+            http.PreAuthenticate                      = ClientOptions.PreAuthenticate;
+            http.UnsafeAuthenticatedConnectionSharing = ClientOptions.UnsafeAuthenticatedConnectionSharing;
 
-            var userAgent = UserAgent ?? http.UserAgent;
+            var userAgent = ClientOptions.UserAgent ?? http.UserAgent;
 
             http.UserAgent = userAgent.HasValue()
                 ? userAgent
@@ -581,32 +587,32 @@ namespace RestSharp
 
             var timeout = request.Timeout != 0
                 ? request.Timeout
-                : Timeout;
+                : ClientOptions.Timeout;
 
             if (timeout != 0)
                 http.Timeout = timeout;
 
             var readWriteTimeout = request.ReadWriteTimeout != 0
                 ? request.ReadWriteTimeout
-                : ReadWriteTimeout;
+                : ClientOptions.ReadWriteTimeout;
 
             if (readWriteTimeout != 0)
                 http.ReadWriteTimeout = readWriteTimeout;
 
-            http.FollowRedirects = FollowRedirects;
+            http.FollowRedirects = ClientOptions.FollowRedirects;
 
-            if (ClientCertificates != null)
-                http.ClientCertificates = ClientCertificates;
+            if (ClientOptions.ClientCertificates != null)
+                http.ClientCertificates = ClientOptions.ClientCertificates;
 
-            http.MaxRedirects = MaxRedirects;
-            http.CachePolicy  = CachePolicy;
-            http.Pipelined    = Pipelined;
+            http.MaxRedirects = ClientOptions.MaxRedirects;
+            http.CachePolicy  = ClientOptions.CachePolicy;
+            http.Pipelined    = ClientOptions.Pipelined;
 
             if (request.Credentials != null)
                 http.Credentials = request.Credentials;
 
-            if (!IsNullOrEmpty(ConnectionGroupName))
-                http.ConnectionGroupName = ConnectionGroupName;
+            if (!IsNullOrEmpty(ClientOptions.ConnectionGroupName))
+                http.ConnectionGroupName = ClientOptions.ConnectionGroupName;
 
             http.Headers = requestParameters
                 .Where(p => p.Type == ParameterType.HttpHeader)
@@ -640,7 +646,7 @@ namespace RestSharp
 
             http.AllowedDecompressionMethods = request.AllowedDecompressionMethods;
 
-            var proxy = Proxy ?? WebRequest.DefaultWebProxy;
+            var proxy = ClientOptions.Proxy ?? WebRequest.DefaultWebProxy;
 
             try
             {
@@ -653,7 +659,7 @@ namespace RestSharp
 
             http.Proxy = proxy;
 
-            http.RemoteCertificateValidationCallback = RemoteCertificateValidationCallback;
+            http.RemoteCertificateValidationCallback = ClientOptions.RemoteCertificateValidationCallback;
 
             return http;
         }
@@ -739,7 +745,7 @@ namespace RestSharp
                 Resource = assembled;
             }
 
-            public Uri Uri { get; }
+            public Uri    Uri      { get; }
             public string Resource { get; }
         }
     }

@@ -209,7 +209,7 @@ namespace RestSharp
 
             Action<HttpResponse> responseCb = ProcessResponse;
 
-            if (UseSynchronizationContext && SynchronizationContext.Current != null)
+            if (ClientOptions.UseSynchronizationContext && SynchronizationContext.Current != null)
             {
                 var ctx = SynchronizationContext.Current;
                 var cb  = responseCb;

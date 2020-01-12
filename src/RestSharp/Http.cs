@@ -28,6 +28,7 @@ using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Text.RegularExpressions;
 using RestSharp.Extensions;
+using RestSharp.Options;
 
 namespace RestSharp
 {
@@ -44,6 +45,8 @@ namespace RestSharp
 
         readonly IDictionary<string, Action<HttpWebRequest, string>> _restrictedHeaderActions;
 
+        HttpOptions HttpOptions { get; set; }
+
         /// <summary>
         ///     Default constructor
         /// </summary>
@@ -57,42 +60,42 @@ namespace RestSharp
 
             void AddSyncHeaderActions()
             {
-                _restrictedHeaderActions.Add("Connection", (r, v) => { r.KeepAlive = v.ToLower().Contains("keep-alive"); });
-                _restrictedHeaderActions.Add("Content-Length", (r, v) => r.ContentLength = Convert.ToInt64(v));
-                _restrictedHeaderActions.Add("Expect", (r, v) => r.Expect                = v);
+                _restrictedHeaderActions.Add(HttpHeaderNames.Connection, (r, v) => { r.KeepAlive = v.ToLower().Contains(HttpHeaderNames.KeepAlive); });
+                _restrictedHeaderActions.Add(HttpHeaderNames.ContentLength, (r, v) => r.ContentLength = Convert.ToInt64(v));
+                _restrictedHeaderActions.Add(HttpHeaderNames.Expect, (r, v) => r.Expect               = v);
 
                 _restrictedHeaderActions.Add(
-                    "If-Modified-Since",
+                    HttpHeaderNames.IfModifiedSince,
                     (r, v) => r.IfModifiedSince = Convert.ToDateTime(v, CultureInfo.InvariantCulture)
                 );
-                _restrictedHeaderActions.Add("Referer", (r, v) => r.Referer = v);
+                _restrictedHeaderActions.Add(HttpHeaderNames.Referer, (r, v) => r.Referer = v);
 
                 _restrictedHeaderActions.Add(
-                    "Transfer-Encoding", (r, v) =>
+                    HttpHeaderNames.TransferEncoding, (r, v) =>
                     {
                         r.TransferEncoding = v;
                         r.SendChunked      = true;
                     }
                 );
-                _restrictedHeaderActions.Add("User-Agent", (r, v) => r.UserAgent = v);
+                _restrictedHeaderActions.Add(HttpHeaderNames.UserAgent, (r, v) => r.UserAgent = v);
             }
 
             void AddSharedHeaderActions()
             {
-                _restrictedHeaderActions.Add("Accept", (r, v) => r.Accept            = v);
-                _restrictedHeaderActions.Add("Content-Type", (r, v) => r.ContentType = v);
+                _restrictedHeaderActions.Add(HttpHeaderNames.Accept, (r, v) => r.Accept           = v);
+                _restrictedHeaderActions.Add(HttpHeaderNames.ContentType, (r, v) => r.ContentType = v);
 
                 _restrictedHeaderActions.Add(
-                    "Date", (r, v) =>
+                    HttpHeaderNames.Date, (r, v) =>
                     {
                         if (DateTime.TryParse(v, out var parsed))
                             r.Date = parsed;
                     }
                 );
 
-                _restrictedHeaderActions.Add("Host", (r, v) => r.Host = v);
+                _restrictedHeaderActions.Add(HttpHeaderNames.Host, (r, v) => r.Host = v);
 
-                _restrictedHeaderActions.Add("Range", AddRange);
+                _restrictedHeaderActions.Add(HttpHeaderNames.Range, AddRange);
 
                 static void AddRange(HttpWebRequest r, string range)
                 {
@@ -133,39 +136,14 @@ namespace RestSharp
         internal Func<string, string> Encode { get; set; } = s => s.UrlEncode();
 
         /// <summary>
-        ///     Enable or disable automatic gzip/deflate decompression
-        /// </summary>
-        public bool AutomaticDecompression { get; set; }
-
-        /// <summary>
         ///     Always send a multipart/form-data request - even when no Files are present.
         /// </summary>
         public bool AlwaysMultipartFormData { get; set; }
 
         /// <summary>
-        ///     UserAgent to be sent with request
-        /// </summary>
-        public string UserAgent { get; set; }
-
-        /// <summary>
-        ///     Timeout in milliseconds to be used for the request
-        /// </summary>
-        public int Timeout { get; set; }
-
-        /// <summary>
-        ///     The number of milliseconds before the writing or reading times out.
-        /// </summary>
-        public int ReadWriteTimeout { get; set; }
-
-        /// <summary>
         ///     System.Net.ICredentials to be sent with request
         /// </summary>
         public ICredentials Credentials { get; set; }
-
-        /// <summary>
-        ///     The System.Net.CookieContainer to be used for the request
-        /// </summary>
-        public CookieContainer CookieContainer { get; set; }
 
         /// <summary>
         ///     The delegate to use to write the response instead of reading into RawBytes
@@ -182,42 +160,6 @@ namespace RestSharp
         ///     Collection of files to be sent with request
         /// </summary>
         public IList<HttpFile> Files { get; internal set; }
-
-        /// <summary>
-        ///     Whether or not HTTP 3xx response redirects should be automatically followed
-        /// </summary>
-        public bool FollowRedirects { get; set; }
-
-        /// <summary>
-        ///     Whether or not to use pipelined connections
-        /// </summary>
-        public bool Pipelined { get; set; }
-
-        /// <summary>
-        ///     X509CertificateCollection to be sent with request
-        /// </summary>
-        public X509CertificateCollection ClientCertificates { get; set; }
-
-        /// <summary>
-        ///     Maximum number of automatic redirects to follow if FollowRedirects is true
-        /// </summary>
-        public int? MaxRedirects { get; set; }
-
-        /// <summary>
-        ///     Determine whether or not the "default credentials" (e.g. the user account under which the current process is
-        ///     running) ///     will be sent along to the server.
-        /// </summary>
-        public bool UseDefaultCredentials { get; set; }
-
-        /// <summary>
-        ///     The ConnectionGroupName property enables you to associate a request with a connection group.
-        /// </summary>
-        public string ConnectionGroupName { get; set; }
-
-        /// <summary>
-        ///     Encoding for the request, UTF8 is the default
-        /// </summary>
-        public Encoding Encoding { get; set; } = Encoding.UTF8;
 
         /// <summary>
         ///     HTTP headers to be sent with request
@@ -255,40 +197,9 @@ namespace RestSharp
         public Uri Url { get; set; }
 
         /// <summary>
-        ///     Explicit Host header value to use in requests independent from the request URI.
-        ///     If null, default host value extracted from URI is used.
-        /// </summary>
-        public string Host { get; set; }
-
-        /// <summary>
         ///     List of Allowed Decompression Methods
         /// </summary>
         public IList<DecompressionMethods> AllowedDecompressionMethods { get; set; }
-
-        /// <summary>
-        ///     Flag to send authorisation header with the HttpWebRequest
-        /// </summary>
-        public bool PreAuthenticate { get; set; }
-
-        /// <summary>
-        ///     Flag to reuse same connection in the HttpWebRequest
-        /// </summary>
-        public bool UnsafeAuthenticatedConnectionSharing { get; set; }
-
-        /// <summary>
-        ///     Proxy info to be sent with request
-        /// </summary>
-        public IWebProxy Proxy { get; set; }
-
-        /// <summary>
-        ///     Caching policy for requests created with this wrapper.
-        /// </summary>
-        public RequestCachePolicy CachePolicy { get; set; }
-
-        /// <summary>
-        ///     Callback function for handling the validation of remote certificates.
-        /// </summary>
-        public RemoteCertificateValidationCallback RemoteCertificateValidationCallback { get; set; }
 
         public Action<HttpWebRequest> WebRequestConfigurator { get; set; }
 
@@ -302,12 +213,12 @@ namespace RestSharp
         [Obsolete("Overriding this method won't be possible in future version")]
         protected virtual HttpWebRequest CreateWebRequest(Uri url) => null;
 
-        static HttpWebRequest CreateRequest(Uri uri) => (HttpWebRequest) WebRequest.Create(uri);
+        static HttpWebRequest CreateRequest(Uri uri) => WebRequest.CreateHttp(uri);
 
         static string GetMultipartFileHeader(HttpFile file)
-            => $"--{FormBoundary}{LineBreak}Content-Disposition: form-data; name=\"{file.Name}\";" +
-                $" filename=\"{file.FileName}\"{LineBreak}"                                        +
-                $"Content-Type: {file.ContentType ?? "application/octet-stream"}{LineBreak}{LineBreak}";
+            => $"--{FormBoundary}{LineBreak}{HttpHeaderNames.ContentDisposition}: form-data; name=\"{file.Name}\";" +
+                $" filename=\"{file.FileName}\"{LineBreak}"                                                         +
+                $"{HttpHeaderNames.ContentType}: {file.ContentType ?? "application/octet-stream"}{LineBreak}{LineBreak}";
 
         string GetMultipartFormData(HttpParameter param)
         {
@@ -351,19 +262,19 @@ namespace RestSharp
         void WriteMultipartFormData(Stream requestStream)
         {
             foreach (var param in Parameters)
-                requestStream.WriteString(GetMultipartFormData(param), Encoding);
+                requestStream.WriteString(GetMultipartFormData(param), HttpOptions.Encoding);
 
             foreach (var file in Files)
             {
                 // Add just the first part of this param, since we will write the file data directly to the Stream
-                requestStream.WriteString(GetMultipartFileHeader(file), Encoding);
+                requestStream.WriteString(GetMultipartFileHeader(file), HttpOptions.Encoding);
 
                 // Write the file data directly to the Stream, rather than serializing it to a string.
                 file.Writer(requestStream);
-                requestStream.WriteString(LineBreak, Encoding);
+                requestStream.WriteString(LineBreak, HttpOptions.Encoding);
             }
 
-            requestStream.WriteString(GetMultipartFooter(), Encoding);
+            requestStream.WriteString(GetMultipartFooter(), HttpOptions.Encoding);
         }
 
         HttpResponse ExtractResponseData(HttpWebResponse webResponse)

@@ -27,72 +27,25 @@ using System.Threading;
 using System.Threading.Tasks;
 using RestSharp.Authenticators;
 using RestSharp.Deserializers;
+using RestSharp.Options;
 using RestSharp.Serialization;
 
 namespace RestSharp
 {
     public partial interface IRestClient
     {
+        RestClientOptions ClientOptions { get; }
+        
         IRestClient UseSerializer(Func<IRestSerializer> serializerFactory);
 
         IRestClient UseSerializer<T>() where T : IRestSerializer, new();
-
-        CookieContainer CookieContainer { get; set; }
-
-        bool AutomaticDecompression { get; set; }
-
-        int? MaxRedirects { get; set; }
-
-        string UserAgent { get; set; }
-
-        int Timeout { get; set; }
-
-        int ReadWriteTimeout { get; set; }
-
-        bool UseSynchronizationContext { get; set; }
 
         IAuthenticator Authenticator { get; set; }
 
         Uri BaseUrl { get; set; }
 
-        Encoding Encoding { get; set; }
-
-        bool ThrowOnDeserializationError { get; set; }
-
-        bool FailOnDeserializationError { get; set; }
-
-        bool ThrowOnAnyError { get; set; }
-
-        string ConnectionGroupName { get; set; }
-
-        bool PreAuthenticate { get; set; }
-
-        bool UnsafeAuthenticatedConnectionSharing { get; set; }
-
         IList<Parameter> DefaultParameters { get; }
 
-        string BaseHost { get; set; }
-
-        bool AllowMultipleDefaultParametersWithSameName { get; set; }
-
-        /// <summary>
-        ///     X509CertificateCollection to be sent with request
-        /// </summary>
-        X509CertificateCollection ClientCertificates { get; set; }
-
-        IWebProxy Proxy { get; set; }
-
-        RequestCachePolicy CachePolicy { get; set; }
-
-        bool Pipelined { get; set; }
-
-        bool FollowRedirects { get; set; }
-
-        /// <summary>
-        ///     Callback function for handling the validation of remote certificates. Useful for certificate pinning and
-        ///     overriding certificate errors in the scope of a request.
-        /// </summary>
-        RemoteCertificateValidationCallback RemoteCertificateValidationCallback { get; set; }
 
         IRestResponse<T> Deserialize<T>(IRestResponse response);
 
